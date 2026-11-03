@@ -39,7 +39,7 @@ tools/grade.sh gen/drafts/zit_fireflies_s13.png gen/work/ff_s13_graded.png -0.3
 .venv/bin/python tools/depth.py gen/drafts/zit_fireflies_s13.png gen/work/ff_s13_depth.png
 .venv/bin/python tools/layers.py gen/work/ff_s13_graded.png gen/work/ff_s13_depth.png gen/work/ff_s13
 #    snow:     --near 0.18 --band 0.02 --matte --land
-#    blossoms: --matte --near 0.3 --region 650,0,1920,500   (branch only)
+#    blossoms: --matte --absolute --near 0.55 --region 760,0,1920,640   (branch only, s22)
 
 # 4. Scene data: water outline (blossoms; trace it from the grid), lit windows/lanterns, stars
 .venv/bin/python tools/water.py grid <plate> gen/work/grid.jpg
@@ -57,13 +57,14 @@ tools/grade.sh gen/drafts/zit_fireflies_s13.png gen/work/ff_s13_graded.png -0.3
 The dev Roku's address and password live in `.env` (gitignored): `ROKU_IP`, `ROKU_DEV_PASSWORD`.
 
 ```sh
-tools/sideload.sh roku/dusk                       # zip + install; fails loudly on errors
+tools/sideload.sh roku/dusk                       # dev build (runs as an app; fails loudly on errors)
+tools/sideload.sh roku/dusk --release             # screensaver-only build, as shipped
 curl -X POST "http://$ROKU_IP:8060/launch/dev?scene=snow"     # or scene=cycle&cycle=20, or settings=1
 .venv/bin/python tools/console.py 20              # BrightScript console (FPS is printed every 10 s)
 tools/screenshot.sh build/shot.jpg                # grab the current frame
 ```
 
-To test the real screensaver path, choose Dusk under Settings › Theme › Screensavers on the device.
+To test the real screensaver and its settings, install the `--release` build and choose Dusk under Settings › Theme › Screensavers. The dev build includes `Main()` and a `title`, which makes Roku hang on the splash when opening "Change screensaver settings".
 
 ## Things learned about the target (Roku Streaming Stick+ 3810X)
 
@@ -72,4 +73,5 @@ To test the real screensaver path, choose Dusk under Settings › Theme › Scre
 - Drawing *into* an `roRegion` of an offscreen `roBitmap` does not render; regions as draw *sources* work.
 - `Run` is a BrightScript built-in, and identifiers are case-insensitive, so a local variable can shadow a global function.
 - Sideload space is small; quantized palette PNGs keep the package around 3 MB.
+- "Change screensaver settings" only works for a screensaver-only package (no `title`, no `Main()`; explicit `run_screensaver*` entries). The settings context also needs SceneGraph, not `roScreen`.
 - ECP keypresses return 403 unless "Control by mobile apps" is set to permissive.

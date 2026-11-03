@@ -4,21 +4,7 @@
 '   RunScreenSaver          the system screensaver; shows the scene chosen in settings, or
 '                           cycles through all of them
 '   RunScreenSaverSettings  the settings screen (settings.brs)
-'   Main                    sideloaded app, for development. Launch parameters:
-'                           scene=<name>|cycle, cycle=<seconds> (cycle interval), settings=1
-
-sub Main(args as dynamic)
-    if type(args) <> "roAssociativeArray" then args = {}
-    if args.settings <> invalid
-        RunScreenSaverSettings()
-        return
-    end if
-    name = "fireflies"
-    if args.scene <> invalid then name = args.scene
-    secs = 60
-    if args.cycle <> invalid then secs = args.cycle.ToInt()
-    RunScenes(name, secs, true)
-end sub
+'   Main                    dev.brs; development builds only (see tools/sideload.sh)
 
 sub RunScreenSaver()
     st = LoadSettings()
