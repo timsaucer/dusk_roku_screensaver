@@ -1,4 +1,4 @@
-# Roku Channel Store listing
+# Roku Streaming Store listing
 
 Text and assets for the Developer Dashboard (developer.roku.com). Limits are from Roku's
 publishing guide; lengths were checked when this was written.
@@ -53,7 +53,14 @@ Bump `build_version` (or `minor_version`) in `roku/dusk/manifest` before each ne
 
 ## Dashboard checklist (done by the account owner)
 
-1. Create the channel in the Developer Dashboard (type: screensaver).
+Roku now calls channels "apps". There is no screensaver app type at creation; the package's
+manifest (`screensaver_title`, `run_screensaver*`) is what makes it a screensaver.
+
+1. Developer Dashboard › **Beta apps** › **Create app** (name, countries, default language).
+   Beta apps publish immediately via a private link, which tests the signed package outside
+   developer mode and runs Static Analysis without store scheduling. Repeat under **Public apps**
+   once the beta is clean. In the profile, choose the closest type (Theme), unless a screensaver
+   category is offered.
 2. Fill in the listing text and upload the poster and screenshots above.
 3. Upload `build/dusk-<version>.pkg` on the App package page.
 4. Run Static Analysis and App Behavior Analysis; fix anything flagged.
