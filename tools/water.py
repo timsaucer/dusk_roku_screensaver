@@ -4,13 +4,14 @@
   python tools/water.py set <plate> <scene.json> "x,y x,y ..." [--step 12]
       rasterizes the traced water polygon (1080p screen px, build_scene's 16:9 crop) and writes
       "water": {"top": y0, "step": s, "spans": [[x0, x1], ...]} to the scene JSON, one span per
-      `step` rows from `top`; also writes <plate>_water_check.jpg
+      `step` rows from `top`; also writes gen/work/<plate>_water_check.jpg
 
 Automatic detection (flood fill) proved unreliable on dark dusk plates: it either stops at the
 lantern reflections or leaks into everything, so the outline is traced by hand per plate.
 """
 import json
 import sys
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -56,5 +57,7 @@ chk = load_1080(plate)
 over = chk.copy()
 over[water > 0] = (0, 200, 255)
 chk = cv2.addWeighted(chk, 0.6, over, 0.4, 0)
-Image.fromarray(chk).resize((960, 540)).save(plate.rsplit(".", 1)[0] + "_water_check.jpg")
+out = Path(__file__).resolve().parent.parent / "gen/work" / (Path(plate).stem + "_water_check.jpg")
+out.parent.mkdir(parents=True, exist_ok=True)
+Image.fromarray(chk).resize((960, 540)).save(out)
 print(f"water top {top}, {len(spans)} spans")
