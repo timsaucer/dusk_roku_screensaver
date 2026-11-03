@@ -12,6 +12,7 @@ Sprites (fireflies, stars, snow, aurora, petals, ripples, glows) are drawn proce
 | `fireflies_bg.jpg`, `fireflies_fg.png` | `gen/drafts/zit_fireflies_s13.png`, graded and split into layers | Z-Image-Turbo (Tongyi-MAI), Apache 2.0 | `gen/prompts/fireflies.txt` (seed 13) | 2026-11-03 |
 | `snow_bg.jpg`, `snow_fg.png`, `snow_land.png`, `snow_ground.png` | `gen/drafts/zit_snow_s3.png`, graded and split into layers | Z-Image-Turbo (Tongyi-MAI), Apache 2.0 | `gen/prompts/snow.txt` (seed 3) | 2026-11-03 |
 | `blossoms_bg.jpg`, `blossoms_fg.png` | `gen/drafts/zit_blossoms_s21.png`, split into layers | Z-Image-Turbo (Tongyi-MAI), Apache 2.0 | `gen/prompts/blossoms.txt` (seed 21) | 2026-11-03 |
+| `icon_fhd.jpg`, `icon_hd.jpg`, `icon_sd.jpg` | fireflies plate (`gen/drafts/zit_fireflies_s13.png`) with the title rendered in Georgia (macOS system font; only rendered into the image) | see fireflies row | n/a | 2026-11-03 |
 | `glow_*`, `star_*`, `winglow`, `aurora_*`, `snowtile_*`, `flake_*`, `petal_*`, `ripple` | procedural | this project | n/a | n/a |
 
 ## Tools used to make the assets (not shipped)
