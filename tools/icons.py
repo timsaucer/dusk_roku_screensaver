@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 OUT = Path(__file__).resolve().parent.parent / "roku/dusk/images"
 src = Image.open(sys.argv[1]).convert("RGB")
 font = "/System/Library/Fonts/Supplemental/Georgia.ttf"
-for name, (w, h) in {"icon_fhd.jpg": (540, 405), "icon_hd.jpg": (290, 218), "icon_sd.jpg": (214, 144)}.items():
+for name, (w, h) in {"icon_fhd.jpg": (540, 405), "icon_hd.jpg": (290, 218), "icon_sd.jpg": (246, 140)}.items():
     # Cover-crop a little tighter than the plate, biased slightly below center (the house).
     s = max(w / src.width, h / src.height) * 1.15
     im = src.resize((int(src.width * s), int(src.height * s)), Image.LANCZOS)

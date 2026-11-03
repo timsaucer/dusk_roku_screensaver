@@ -160,7 +160,7 @@ sub UpdatePetal(s as object, f as object, t as float, dt as float)
     if f.x > 1980 then f.x = f.x - 2040
 end sub
 
-'' Petals are tinted cooler and darker than their sprite so they sit in the dusk light, and
+' Petals are tinted cooler and darker than their sprite so they sit in the dusk light, and
 ' brighter the more face-on they are, as a turning petal catches the light. The levels are
 ' precomputed color literals (building them at runtime overflows BrightScript's 32-bit ints).
 function PetalTints() as object

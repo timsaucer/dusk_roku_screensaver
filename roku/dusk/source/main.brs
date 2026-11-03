@@ -26,6 +26,7 @@ sub RunScenes(names as object, cycleSecs as integer, isApp as boolean)
     screen.SetAlphaEnable(true)
     port = CreateObject("roMessagePort")
     screen.SetMessagePort(port)
+    memory = StartMemoryMonitor(port)
 
     cycling = names.Count() > 1
     idx = 0
@@ -87,6 +88,62 @@ function RunScene(screen as object, port as object, kind as object, scene as obj
         if limit > 0 and now >= limit then return true
 
         msg = port.GetMessage()
+        if type(msg) = "roDeviceInfoEvent" or type(msg) = "roAppMemoryNotificationEvent" then HandleMemoryEvent(msg)
         if isApp and type(msg) = "roUniversalControlEvent" and msg.GetInt() = 0 then return false
     end while
 end function
+
+' Memory monitoring, as Roku certification asks for. Dusk's budget is modest (~33 MB of
+' textures), so these events are not expected; if one arrives, free what can be freed and log
+' the levels so the cause shows up in the device log. roDeviceInfo reports device-wide low
+' memory; roAppMemoryMonitor reports against this channel's own limit.
+function StartMemoryMonitor(port as object) as object
+    mon = { di: CreateObject("roDeviceInfo"), app: CreateObject("roAppMemoryMonitor") }
+    ' Not every Roku OS has every call, so each is guarded on its own.
+    try
+        mon.di.SetMessagePort(port)
+        mon.di.EnableLowGeneralMemoryEvent(true)
+    catch e
+    end try
+    try
+        mon.app.SetMessagePort(port)
+        mon.app.EnableMemoryWarningEvent(true)
+    catch e
+    end try
+    LogMemory("start")
+    return mon
+end function
+
+' Handles roDeviceInfoEvent (general memory level) and roAppMemoryNotificationEvent.
+sub HandleMemoryEvent(msg as object)
+    ' roDeviceInfoEvent also reports unrelated changes (HDMI, power, audio); act only on memory.
+    info = invalid
+    try
+        info = msg.GetInfo()
+    catch e
+    end try
+    if type(msg) = "roDeviceInfoEvent" and (info = invalid or info.generalMemoryLevel = invalid) then return
+    RunGarbageCollector()
+    detail = ""
+    if info <> invalid then detail = FormatJson(info)
+    LogMemory("event " + type(msg) + " " + detail)
+end sub
+
+sub LogMemory(label as string)
+    ' Each stat is read on its own: not every Roku OS has all three.
+    app = CreateObject("roAppMemoryMonitor")
+    limit = "n/a" : avail = "n/a" : pct = "n/a"
+    try
+        limit = app.GetChannelMemoryLimit().ToStr()
+    catch e
+    end try
+    try
+        avail = app.GetChannelAvailableMemory().ToStr()
+    catch e
+    end try
+    try
+        pct = app.GetMemoryLimitPercent().ToStr()
+    catch e
+    end try
+    print "MEMORY "; label; ": limit "; limit; " available "; avail; " used% "; pct
+end sub
