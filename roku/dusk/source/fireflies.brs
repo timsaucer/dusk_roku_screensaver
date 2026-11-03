@@ -102,12 +102,15 @@ sub FirefliesFrame(s as object, screen as object, t as float, dt as float)
         end for
     end if
 
-    ' Window glow, gently flickering.
-    w = cfg.window
-    flick = 0.88 + 0.07 * Sin(t * 2.3) + 0.05 * Sin(t * 5.7 + 1.1)
-    gs = w.size * 1920 / 256.0
-    ga = Int(255 * w.alpha * flick)
-    screen.DrawScaledObject(w.x * 1920 - 128 * gs + px * cfg.parallax.bg[0], w.y * 1080 - 128 * gs + py * cfg.parallax.bg[1], gs, gs, s.winGlow, &hFFFFFF00 + ga)
+    ' Window glows, each flickering on its own.
+    k = 0
+    for each w in cfg.windows
+        flick = 0.88 + 0.07 * Sin(t * 2.3 + k * 1.9) + 0.05 * Sin(t * 5.7 + 1.1 + k * 0.7)
+        gs = w.size * 1920 / 256.0
+        ga = Int(255 * w.alpha * flick)
+        screen.DrawScaledObject(w.x * 1920 - 128 * gs + px * cfg.parallax.bg[0], w.y * 1080 - 128 * gs + py * cfg.parallax.bg[1], gs, gs, s.winGlow, &hFFFFFF00 + ga)
+        k = k + 1
+    end for
 
     pf.stars = pf.stars + pf.clk.TotalMicroseconds() : pf.clk.Mark()
     UpdateFlies(s, t, dt)

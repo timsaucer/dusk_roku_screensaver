@@ -32,7 +32,9 @@ alpha = cv2.GaussianBlur(alpha, (0, 0), 1.2)
 a8 = (alpha * 255).astype(np.uint8)
 Image.fromarray(np.dstack([rgb, a8])).save(f"{a.out}_fg.png", optimize=True)
 
-hole = (alpha > 0.02).astype(np.uint8) * 255
+# Fill only under the solid core. Semi-transparent edges then sit over the original pixels
+# they came from, so they match instead of showing as pale patches over the fill.
+hole = (alpha > 0.5).astype(np.uint8) * 255
 hole = cv2.dilate(hole, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * a.grow + 1,) * 2))
 # Fill each hole pixel with the color of the nearest pixel outside the hole, then soften the
 # fill. Only a thin ring of it is ever seen (as wide as the parallax shift), and nearest-color

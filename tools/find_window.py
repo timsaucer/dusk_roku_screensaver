@@ -1,7 +1,8 @@
-"""Usage: python tools/find_window.py <plate> <scene.json>
+"""Usage: python tools/find_window.py <plate> <scene.json> [--max 3]
 
-Finds the brightest warm light in the plate (the lit window) and writes its normalized
-position into the scene JSON "window" x/y, using build_scene's 16:9 center crop.
+Finds the lit windows (bright warm peaks) in the plate and writes their normalized positions
+into the scene JSON "windows" list, using build_scene's 16:9 center crop. Glow size and alpha
+carry over from the first existing entry.
 """
 import json
 import sys
@@ -17,9 +18,21 @@ rgb = rgb[(h - ch) // 2:(h - ch) // 2 + ch]
 r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
 warm = np.clip(r - b, 0, None) * (r + g) / 510
 warm = cv2.GaussianBlur(warm, (0, 0), 6)
-y, x = np.unravel_index(np.argmax(warm), warm.shape)
+limit = int(sys.argv[sys.argv.index("--max") + 1]) if "--max" in sys.argv else 3
 p = sys.argv[2]
 cfg = json.load(open(p))
-cfg["window"].update({"x": round(x / rgb.shape[1], 4), "y": round(y / rgb.shape[0], 4)})
+template = (cfg.get("windows") or [cfg.get("window", {"size": 0.03, "alpha": 0.5})])[0]
+cfg.pop("window", None)
+peak = warm.max()
+wins = []
+for _ in range(limit):
+    y, x = np.unravel_index(np.argmax(warm), warm.shape)
+    if warm[y, x] < peak * 0.5:
+        break
+    wins.append({"x": round(float(x / rgb.shape[1]), 4), "y": round(float(y / rgb.shape[0]), 4),
+                 "size": template["size"], "alpha": template["alpha"]})
+    # Suppress this peak before looking for the next one.
+    cv2.circle(warm, (int(x), int(y)), 40, 0, -1)
+cfg["windows"] = wins
 json.dump(cfg, open(p, "w"), indent=4)
-print(f"window at {x},{y} -> {cfg['window']}")
+print(f"{len(wins)} windows: {wins}")
