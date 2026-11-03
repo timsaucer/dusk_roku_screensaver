@@ -34,7 +34,7 @@ Every image in Dusk was made for this project. No photographs or third-party art
 - `roku/bench*/`: throwaway performance benchmarks used to find the device's limits
 - `CREDITS.md`: every shipped image and how it was made
 - `STORE.md`, `store/`: Roku Channel Store listing text, artwork and checklist
-- `PRIVACY.md`: privacy policy (linked from the store listing)
+- `PRIVACY.md`, `TERMS.md`: privacy policy and terms of use (linked from the store listing)
 - `LICENSE` (Apache 2.0, code), `LICENSE-ART` (CC0 1.0, images)
 
 ## Asset pipeline

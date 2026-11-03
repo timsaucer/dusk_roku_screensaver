@@ -32,6 +32,7 @@ About the art: every image was made for Dusk. The three backgrounds were generat
 | Poster, 540x405 | `store/poster-540x405.jpg` |
 | Screenshots, 1920x1080 (up to 6) | `store/screenshots/1-fireflies.jpg`, `2-snow.jpg`, `3-blossoms.jpg`, `4-settings.jpg` |
 | Privacy policy URL | https://github.com/timsaucer/dusk_roku_screensaver/blob/main/PRIVACY.md |
+| Terms of use URL | https://github.com/timsaucer/dusk_roku_screensaver/blob/main/TERMS.md |
 | Support | https://github.com/timsaucer/dusk_roku_screensaver/issues |
 
 Suggested settings: monetization **Free**; category **Screensavers** (or Lifestyle, if the
