@@ -151,8 +151,3 @@ sub DrawFlakes(flakes as object, screen as object, t as float, ox as float)
         screen.DrawObject(f.x + f.amp * Sin(t * f.fr + f.ph) + ox - f.half, f.y - f.half, f.bmp, f.rgba)
     end for
 end sub
-
-' Float modulo with a non-negative result (BrightScript's mod works on integers).
-function FMod(a as float, m as float) as float
-    return a - Int(a / m) * m
-end function

@@ -58,6 +58,11 @@ sub PlateDrift(p as object, t as float)
     u = Sin(pt) : v = Sin(pt * 0.7 + 1.3)
     p.bx = u * par.bg[0] : p.by = v * par.bg[1]
     p.fx = u * par.fg[0] : p.fy = v * par.fg[1]
+    ' Optional sway of the foreground on top of the drift (e.g. a branch in the breeze).
+    if par.sway <> invalid
+        p.fx = p.fx + par.sway[0] * (0.7 * Sin(t * 0.37) + 0.3 * Sin(t * 1.13 + 0.6))
+        p.fy = p.fy + par.sway[1] * Sin(t * 0.29 + 1.7)
+    end if
 end sub
 
 sub PlateDrawSky(p as object, screen as object, t as float)
@@ -100,3 +105,8 @@ end sub
 sub PlateDrawFg(p as object, screen as object)
     screen.DrawObject(p.fx - p.fgMargin[0], p.fy - p.fgMargin[1], p.fg)
 end sub
+
+' Float modulo with a non-negative result (BrightScript's mod works on integers).
+function FMod(a as float, m as float) as float
+    return a - Int(a / m) * m
+end function

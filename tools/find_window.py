@@ -2,7 +2,8 @@
 
 Finds the lit windows (bright warm peaks) in the plate and writes their normalized positions
 into the scene JSON "windows" list, using build_scene's 16:9 center crop. Glow size and alpha
-carry over from the first existing entry.
+carry over from the first existing entry. Peaks inside the scene's traced "water" (reflections)
+are skipped, so trace the water first.
 """
 import json
 import sys
@@ -23,6 +24,12 @@ p = sys.argv[2]
 cfg = json.load(open(p))
 template = (cfg.get("windows") or [cfg.get("window", {"size": 0.03, "alpha": 0.5})])[0]
 cfg.pop("window", None)
+# Skip reflections: zero the warm map inside the traced water, if the scene has it.
+wat = cfg.get("water")
+if wat:
+    for i, (x0, x1) in enumerate(wat["spans"]):
+        y = wat["top"] + i * wat["step"]
+        warm[y:y + wat["step"], x0:x1 + 1] = 0
 peak = warm.max()
 wins = []
 for _ in range(limit):

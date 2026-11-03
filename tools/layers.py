@@ -13,6 +13,7 @@ Options:
   --matte       snap alpha edges to the plate with a guided filter (sharper, fewer half-alpha
                 regions where depth is ambiguous)
   --grow 3      dilate the filled hole by this many px to hide edge fringes
+  --region x0,y0,x1,y1  restrict the foreground to a box (soft-edged), e.g. just a branch
 """
 import argparse
 
@@ -29,6 +30,7 @@ ap.add_argument("--band", type=float, default=0.05)
 ap.add_argument("--matte", action="store_true")
 ap.add_argument("--land", action="store_true")
 ap.add_argument("--grow", type=int, default=3)
+ap.add_argument("--region", help="x0,y0,x1,y1 in plate px: only this box can be foreground")
 a = ap.parse_args()
 
 rgb = np.array(Image.open(a.plate).convert("RGB"))
@@ -61,6 +63,11 @@ def check(alpha):
 cx0, cx1 = int(d.shape[1] * 0.35), int(d.shape[1] * 0.65)
 ground = np.maximum.accumulate(cv2.GaussianBlur(np.median(d[:, cx0:cx1], axis=1)[:, None], (0, 0), 8)[:, 0])
 alpha = soft(d - ground[:, None], a.near)
+if a.region:
+    x0, y0, x1, y1 = (int(v) for v in a.region.split(","))
+    box = np.zeros_like(alpha)
+    box[y0:y1, x0:x1] = 1
+    alpha *= cv2.GaussianBlur(box, (0, 0), 20)
 alpha = guided(alpha) if a.matte else cv2.GaussianBlur(alpha, (0, 0), 1.2)
 a8 = (alpha * 255).astype(np.uint8)
 Image.fromarray(np.dstack([rgb, a8])).save(f"{a.out}_fg.png", optimize=True)

@@ -1,38 +1,76 @@
 ' Dusk screensaver: photoreal plate layers with procedural animation drawn over them.
-' Entry points: RunScreenSaver (system), Main (sideloaded app, for development; pass
-' scene=<name> as a launch parameter to pick the scene).
+'
+' Entry points:
+'   RunScreenSaver          the system screensaver; shows the scene chosen in settings, or
+'                           cycles through all of them
+'   RunScreenSaverSettings  the settings screen (settings.brs)
+'   Main                    sideloaded app, for development. Launch parameters:
+'                           scene=<name>|cycle, cycle=<seconds> (cycle interval), settings=1
 
 sub Main(args as dynamic)
+    if type(args) <> "roAssociativeArray" then args = {}
+    if args.settings <> invalid
+        RunScreenSaverSettings()
+        return
+    end if
     name = "fireflies"
-    if type(args) = "roAssociativeArray" and args.scene <> invalid then name = args.scene
-    RunScene(name, true)
+    if args.scene <> invalid then name = args.scene
+    secs = 60
+    if args.cycle <> invalid then secs = args.cycle.ToInt()
+    RunScenes(name, secs, true)
 end sub
 
 sub RunScreenSaver()
-    RunScene("fireflies", false)
+    st = LoadSettings()
+    RunScenes(st.scene, st.cycleMinutes * 60, false)
 end sub
 
 function Scenes() as object
     return {
         fireflies: { init: FirefliesInit, frame: FirefliesFrame }
         snow: { init: SnowInit, frame: SnowFrame }
+        blossoms: { init: BlossomsInit, frame: BlossomsFrame }
     }
 end function
 
-sub RunScene(name as string, isApp as boolean)
+' Runs one scene forever, or with name "cycle" each scene in turn for cycleSecs, fading
+' through black between them.
+sub RunScenes(name as string, cycleSecs as integer, isApp as boolean)
     screen = CreateObject("roScreen", true, 1920, 1080)
     screen.SetAlphaEnable(true)
     port = CreateObject("roMessagePort")
     screen.SetMessagePort(port)
 
-    kind = Scenes()[name]
-    cfg = ParseJson(ReadAsciiFile("pkg:/scenes/" + name + ".json"))
-    scene = kind.init(cfg)
+    order = ["fireflies", "snow", "blossoms"]
+    cycling = (name = "cycle")
+    idx = 0
+    if not cycling
+        for i = 0 to order.Count() - 1
+            if order[i] = name then idx = i
+        end for
+    end if
 
+    while true
+        ' Each scene gets a fresh start; the previous one's bitmaps are released first.
+        kind = Scenes()[order[idx]]
+        cfg = ParseJson(ReadAsciiFile("pkg:/scenes/" + order[idx] + ".json"))
+        scene = kind.init(cfg)
+        limit = -1
+        if cycling then limit = cycleSecs
+        if not RunScene(screen, port, kind, scene, cfg, limit, isApp) then return
+        scene = invalid
+        RunGarbageCollector()
+        idx = (idx + 1) mod order.Count()
+    end while
+end sub
+
+' Plays one scene. Returns false if the user exited (dev app only), true when its time is up.
+function RunScene(screen as object, port as object, kind as object, scene as object, cfg as object, limit as integer, isApp as boolean) as boolean
     ' Optional frame cap (scene JSON "fps"): heavy scenes run at a steady 30 rather than an
     ' uneven 35-45, which judders more than a locked lower rate.
     frameMs = 0
     if cfg.fps <> invalid then frameMs = 1000 / cfg.fps
+    fade = 1.5
     frameClock = CreateObject("roTimespan")
     clock = CreateObject("roTimespan")
     fpsClock = CreateObject("roTimespan")
@@ -44,6 +82,15 @@ sub RunScene(name as string, isApp as boolean)
         if dt > 0.1 then dt = 0.1
         last = now
         kind.frame(scene, screen, now, dt)
+
+        ' Fade in at the start; when cycling, fade out before the next scene.
+        k = now / fade
+        if limit > 0 and limit - now < fade then k = (limit - now) / fade
+        if k < 1
+            if k < 0 then k = 0
+            screen.DrawRect(0, 0, 1920, 1080, &h00000000 + Int(255 * (1 - k)))
+        end if
+
         if frameMs > 0
             ' Wait out most of the frame, then let SwapBuffers land on the next vsync.
             left = frameMs - 2 - frameClock.TotalMilliseconds()
@@ -58,8 +105,9 @@ sub RunScene(name as string, isApp as boolean)
             frames = 0
             fpsClock.Mark()
         end if
+        if limit > 0 and now >= limit then return true
 
         msg = port.GetMessage()
-        if isApp and type(msg) = "roUniversalControlEvent" and msg.GetInt() = 0 then return
+        if isApp and type(msg) = "roUniversalControlEvent" and msg.GetInt() = 0 then return false
     end while
-end sub
+end function
