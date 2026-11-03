@@ -33,7 +33,7 @@ Every image in Dusk was made for this project. No photographs or third-party art
 - `tools/`: the asset pipeline and device helpers
 - `roku/bench*/`: throwaway performance benchmarks used to find the device's limits
 - `CREDITS.md`: every shipped image and how it was made
-- `STORE.md`: Roku Channel Store listing text and checklist
+- `STORE.md`, `store/`: Roku Channel Store listing text, artwork and checklist
 - `PRIVACY.md`: privacy policy (linked from the store listing)
 - `LICENSE` (Apache 2.0, code), `LICENSE-ART` (CC0 1.0, images)
 
@@ -75,6 +75,7 @@ tools/sideload.sh roku/dusk --release             # screensaver-only build, as s
 curl -X POST "http://$ROKU_IP:8060/launch/dev?scene=snow"     # or scene=cycle&cycle=20, or settings=1
 .venv/bin/python tools/console.py 20              # BrightScript console (FPS is printed every 10 s)
 tools/screenshot.sh build/shot.jpg                # grab the current frame
+tools/package.sh                                  # signed store package -> build/dusk-<version>.pkg
 ```
 
 To test the real screensaver and its settings, install the `--release` build and choose Dusk under Settings › Theme › Screensavers. The dev build includes `Main()` and a `title`, which makes Roku hang on the splash when opening "Change screensaver settings".
