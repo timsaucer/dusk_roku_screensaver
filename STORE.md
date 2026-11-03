@@ -7,11 +7,11 @@ publishing guide; lengths were checked when this was written.
 
 **Name** (16/30): Dusk Screensaver
 
-**On-device description** (247/300):
+**On-device description** (259/300):
 
-> Three quiet scenes for your TV: fireflies over a meadow at dusk, snowfall under a faint aurora, and cherry petals drifting onto a lantern-lit canal. Pick one or let them cycle. All art was generated for this screensaver and is free to reuse (CC0).
+> Three quiet scenes for your TV: fireflies over a meadow at dusk, snowfall under a faint aurora, and cherry petals drifting onto a lantern-lit canal. Show one, or cycle through any of them. All art was generated for this screensaver and is free to reuse (CC0).
 
-**Online description** (1263/1500):
+**Online description** (1279/1500):
 
 ```
 Dusk turns your TV into a calm window at the end of the day. Three scenes, each a still photoreal plate brought to life with slow, continuous animation:
@@ -20,7 +20,7 @@ Dusk turns your TV into a calm window at the end of the day. Three scenes, each 
 - Snowfall: a quiet pine forest at night with one lit cabin window. A faint, naked-eye aurora moves behind the trees as snow falls at three depths and settles into the snow.
 - Cherry blossoms: a canal in Kyoto lined with paper lanterns. Petals tumble down, land on the water with a small ripple, float, and fade. Now and then a gust sweeps through.
 
-Choose a scene, or cycle through all three every 5 to 60 minutes (Settings > Theme > Screensavers > Dusk > Change screensaver settings). No ads, no accounts, no network access.
+Pick one scene, or tick two or three to cycle through them every 5 to 60 minutes (Settings > Theme > Screensavers > Dusk > Change screensaver settings). No ads, no accounts, no network access.
 
 About the art: every image was made for Dusk. The three backgrounds were generated locally with the open Z-Image-Turbo model (Apache 2.0), then color graded and split into depth layers. Everything that moves is drawn procedurally. All of the art is dedicated to the public domain under CC0 1.0, and the code is open source under Apache 2.0. Prompts, seeds and source: github.com/timsaucer/dusk_roku_screensaver
 ```
