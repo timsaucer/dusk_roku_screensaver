@@ -2,7 +2,7 @@
 ' and inspected over ECP. Release builds leave this file out and drop "title" from the
 ' manifest: Roku only invokes RunScreenSaverSettings for a screensaver-only package.
 '
-' Launch parameters: scene=<name>|cycle, cycle=<seconds> (cycle interval), settings=1
+' Launch parameters: scene=<name>[,<name>...]|all, cycle=<seconds> (cycle interval), settings=1
 
 sub Main(args as dynamic)
     if type(args) <> "roAssociativeArray" then args = {}
@@ -10,9 +10,11 @@ sub Main(args as dynamic)
         RunScreenSaverSettings()
         return
     end if
-    name = "fireflies"
-    if args.scene <> invalid then name = args.scene
+    names = ["fireflies"]
+    if args.scene <> invalid
+        if args.scene = "all" then names = AllScenes() else names = SplitNames(args.scene)
+    end if
     secs = 60
     if args.cycle <> invalid then secs = args.cycle.ToInt()
-    RunScenes(name, secs, true)
+    RunScenes(names, secs, true)
 end sub

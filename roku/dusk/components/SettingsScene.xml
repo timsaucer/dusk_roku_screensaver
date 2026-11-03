@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!-- Screensaver settings UI. Roku runs RunScreenSaverSettings in a context that only shows
-     SceneGraph screens (an roScreen there never appears and the settings get killed). -->
+     SceneGraph screens (an roScreen there never appears). -->
 <component name="SettingsScene" extends="Scene">
     <interface>
-        <field id="scene" type="string" onChange="onSettingsSet" />
-        <field id="cycleMinutes" type="integer" onChange="onSettingsSet" />
+        <!-- Comma-separated scene ids; set by the main thread first, then kept in sync here. -->
+        <field id="scenes" type="string" onChange="onScenesSet" />
+        <field id="cycleMinutes" type="integer" onChange="onMinutesSet" />
         <field id="done" type="boolean" alwaysNotify="true" />
     </interface>
     <script type="text/brightscript" uri="SettingsScene.brs" />
@@ -12,10 +13,13 @@
         <Rectangle width="1920" height="1080" color="0x0B1020FF" />
         <Label translation="[160,110]" text="Dusk" font="font:LargeBoldSystemFont" color="0xF2E6D0FF" />
         <Label translation="[160,190]" color="0x9AA3B5FF" font="font:SmallSystemFont"
-            text="Choose what the screensaver shows. OK selects, Back saves and exits." />
-        <RadioButtonList id="scenes" translation="[160,280]" itemSize="[1100,72]" itemSpacing="[0,8]" />
-        <Label id="cycleTitle" translation="[160,640]" color="0x9AA3B5FF" font="font:MediumSystemFont"
-            text="When cycling, change scene every" />
-        <RadioButtonList id="cycle" translation="[160,700]" itemSize="[400,60]" numRows="5" />
+            text="Tick one scene, or several to cycle through them. OK toggles, Back saves and exits." />
+        <!-- floatingFocus: no wrap-around, so Down on the last scene moves to the interval list. -->
+        <CheckList id="scenes" translation="[160,280]" itemSize="[1100,72]" itemSpacing="[0,8]"
+            vertFocusAnimationStyle="floatingFocus" />
+        <Label id="cycleTitle" translation="[160,560]" color="0x9AA3B5FF" font="font:MediumSystemFont"
+            text="When showing several scenes, change scene every" />
+        <RadioButtonList id="cycle" translation="[160,620]" itemSize="[400,60]" numRows="5"
+            vertFocusAnimationStyle="floatingFocus" />
     </children>
 </component>

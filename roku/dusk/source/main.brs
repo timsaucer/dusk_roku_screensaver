@@ -2,13 +2,13 @@
 '
 ' Entry points:
 '   RunScreenSaver          the system screensaver; shows the scene chosen in settings, or
-'                           cycles through all of them
+'                           cycles through the chosen scenes
 '   RunScreenSaverSettings  the settings screen (settings.brs)
 '   Main                    dev.brs; development builds only (see tools/sideload.sh)
 
 sub RunScreenSaver()
     st = LoadSettings()
-    RunScenes(st.scene, st.cycleMinutes * 60, false)
+    RunScenes(st.scenes, st.cycleMinutes * 60, false)
 end sub
 
 function Scenes() as object
@@ -19,34 +19,27 @@ function Scenes() as object
     }
 end function
 
-' Runs one scene forever, or with name "cycle" each scene in turn for cycleSecs, fading
+' Runs a single scene forever, or with several names each in turn for cycleSecs, fading
 ' through black between them.
-sub RunScenes(name as string, cycleSecs as integer, isApp as boolean)
+sub RunScenes(names as object, cycleSecs as integer, isApp as boolean)
     screen = CreateObject("roScreen", true, 1920, 1080)
     screen.SetAlphaEnable(true)
     port = CreateObject("roMessagePort")
     screen.SetMessagePort(port)
 
-    order = ["fireflies", "snow", "blossoms"]
-    cycling = (name = "cycle")
+    cycling = names.Count() > 1
     idx = 0
-    if not cycling
-        for i = 0 to order.Count() - 1
-            if order[i] = name then idx = i
-        end for
-    end if
-
     while true
         ' Each scene gets a fresh start; the previous one's bitmaps are released first.
-        kind = Scenes()[order[idx]]
-        cfg = ParseJson(ReadAsciiFile("pkg:/scenes/" + order[idx] + ".json"))
+        kind = Scenes()[names[idx]]
+        cfg = ParseJson(ReadAsciiFile("pkg:/scenes/" + names[idx] + ".json"))
         scene = kind.init(cfg)
         limit = -1
         if cycling then limit = cycleSecs
         if not RunScene(screen, port, kind, scene, cfg, limit, isApp) then return
         scene = invalid
         RunGarbageCollector()
-        idx = (idx + 1) mod order.Count()
+        idx = (idx + 1) mod names.Count()
     end while
 end sub
 
