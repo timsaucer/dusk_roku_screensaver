@@ -22,6 +22,7 @@ if "--launch" in sys.argv:
         print(f"[launch: {e.code}, app likely already running]")
 end = time.time() + secs
 buf = b""
+# Print complete lines as they arrive, so a long capture can be read while it runs.
 while time.time() < end:
     try:
         d = s.recv(4096)
@@ -29,7 +30,10 @@ while time.time() < end:
             break
         buf += d
     except socket.timeout:
-        pass
-for line in buf.decode(errors="replace").splitlines():
-    if line.strip() and "beacon" not in line:
-        print(line)
+        continue
+    *lines, rest = buf.split(b"\n")
+    buf = rest
+    for line in lines:
+        text = line.decode(errors="replace").rstrip()
+        if text.strip() and "beacon" not in text:
+            print(text, flush=True)

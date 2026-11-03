@@ -7,7 +7,7 @@ Packs one scene's layers into roku/dusk/images/:
                                    row goes into the scene JSON as "landTop"
 Also (re)renders the shared sprites: glow_<px>.png, star_<i>.png, winglow.png, and the snow
 scene's aurora_<i>.png, snowtile_<i>.png, flake_<px>.png, and the blossom scene's
-petal_<i>.png and ripple.png.
+petal_<variant>_<i>.png and ripple.png.
 """
 import argparse
 import json
@@ -128,31 +128,55 @@ def snow_sprites():
         radial(s, lambda r: 0.55 * np.exp(-(r * 1.8) ** 2), (235, 240, 252)).save(OUT / f"flake_{s}.png")
 
 
-def petal(angle_deg, size=32, ss=4):
-    # A cherry petal: obovate blade with a small notch at the tip, deeper pink at the base.
+PETAL_VARIANTS = [
+    # (base blush, tip) colors: near-white, soft pink, deeper pink.
+    ((236, 178, 196), (255, 246, 248)),
+    ((232, 150, 178), (255, 226, 236)),
+    ((214, 116, 152), (250, 206, 222)),
+]
+
+
+def petal(angle_deg, variant=1, size=48, ss=4, seed=0):
+    # A cherry petal: obovate blade with a notch at the tip, a blush at the base fading to a
+    # pale tip, fine veins fanning from the base, a slightly translucent rim and faint grain.
     # Rendered supersampled, rotated by angle_deg (its long axis starts vertical).
+    rng = np.random.default_rng(seed)
     n = size * ss
     y, x = (np.mgrid[0:n, 0:n] + 0.5) / n * 2 - 1
     t = np.radians(angle_deg)
     u = x * np.cos(t) + y * np.sin(t)      # across the petal
     v = -x * np.sin(t) + y * np.cos(t)     # along it, base at +1, tip at -1
-    # Rounded blade, widest a little toward the tip, tapering to a narrow base.
     half_w = 0.58 * np.sqrt(np.clip(1 - ((v + 0.15) / 0.82) ** 2, 0, 1)) * np.clip((0.97 - v) * 0.8 + 0.2, 0, 1)
     inside = np.abs(u) < half_w
     notch = (u / 0.13) ** 2 + ((v + 0.98) / 0.2) ** 2 < 1
-    a = (inside & ~notch).astype(np.float32)
-    tip = np.clip((1 - v) / 2, 0, 1)[..., None]
-    base_c, tip_c = np.array([238, 160, 186]), np.array([255, 232, 240])
-    rgb = base_c * (1 - tip) + tip_c * tip
-    img = np.dstack([rgb, a[..., None] * 255]).astype(np.uint8)
+    shape = (inside & ~notch).astype(np.float32)
+
+    base_c, tip_c = (np.array(c, np.float32) for c in PETAL_VARIANTS[variant])
+    tip = np.clip((1 - v) / 2, 0, 1) ** 1.3
+    rgb = base_c * (1 - tip[..., None]) + tip_c * tip[..., None]
+    # Veins: thin lines radiating from the base point, slightly darker, fading toward the tip.
+    theta = np.arctan2(u, np.clip(1.05 - v, 1e-3, None))
+    veins = sum(np.exp(-((theta - phi) / 0.035) ** 2) for phi in np.linspace(-0.55, 0.55, 9))
+    rgb *= (1 - 0.2 * np.clip(veins, 0, 1) * (1 - 0.5 * tip))[..., None]
+    # Cupping: petals curve, so one side faces the light and the other falls into shade.
+    cup = np.clip(u / np.maximum(half_w, 1e-3), -1, 1)
+    rgb *= (1 + 0.16 * cup - 0.1 * cup**2)[..., None]
+    # Rim: a little brighter and more translucent at the edge, as thin petals are.
+    edge = np.clip(1 - (half_w - np.abs(u)) / 0.12, 0, 1) * shape
+    rgb = rgb * (1 - 0.25 * edge[..., None]) + 255 * 0.25 * edge[..., None]
+    rgb *= (1 + 0.04 * rng.standard_normal((n, n)))[..., None]
+    a = shape * (0.95 - 0.3 * edge)
+
+    img = np.dstack([np.clip(rgb, 0, 255), a[..., None] * 255]).astype(np.uint8)
     return Image.fromarray(img, "RGBA").resize((size, size), Image.LANCZOS)
 
 
 def blossom_sprites():
-    # 8 rotations over 180 degrees (a petal turned 180 looks nearly the same); scale and the
+    # 3 color variants x 8 rotations over 180 degrees (a petal turned 180 looks nearly the same); scale and the
     # 3D flip are applied at draw time.
-    for i in range(8):
-        petal(i * 22.5).save(OUT / f"petal_{i}.png")
+    for v in range(len(PETAL_VARIANTS)):
+        for i in range(8):
+            petal(i * 22.5, v, seed=v * 8 + i).save(OUT / f"petal_{v}_{i}.png")
     # Ripple: a thin soft ring, drawn squashed vertically for the water's perspective.
     radial(128, lambda r: 0.8 * np.exp(-(((r - 0.86) / 0.07) ** 2)), (225, 232, 250)).save(OUT / "ripple.png")
 

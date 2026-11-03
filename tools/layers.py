@@ -14,6 +14,8 @@ Options:
                 regions where depth is ambiguous)
   --grow 3      dilate the filled hole by this many px to hide edge fringes
   --region x0,y0,x1,y1  restrict the foreground to a box (soft-edged), e.g. just a branch
+  --absolute    threshold raw depth (>= near); for an occluder that spans the central columns
+                the row-ground reference is sampled from, like a branch across the top
 """
 import argparse
 
@@ -30,6 +32,7 @@ ap.add_argument("--band", type=float, default=0.05)
 ap.add_argument("--matte", action="store_true")
 ap.add_argument("--land", action="store_true")
 ap.add_argument("--grow", type=int, default=3)
+ap.add_argument("--absolute", action="store_true", help="threshold raw depth instead of depth above the row's ground")
 ap.add_argument("--region", help="x0,y0,x1,y1 in plate px: only this box can be foreground")
 a = ap.parse_args()
 
@@ -62,7 +65,7 @@ def check(alpha):
 # stand clearly nearer than the ground behind them; open meadow does not.
 cx0, cx1 = int(d.shape[1] * 0.35), int(d.shape[1] * 0.65)
 ground = np.maximum.accumulate(cv2.GaussianBlur(np.median(d[:, cx0:cx1], axis=1)[:, None], (0, 0), 8)[:, 0])
-alpha = soft(d - ground[:, None], a.near)
+alpha = soft(d, a.near) if a.absolute else soft(d - ground[:, None], a.near)
 if a.region:
     x0, y0, x1, y1 = (int(v) for v in a.region.split(","))
     box = np.zeros_like(alpha)

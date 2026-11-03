@@ -5,7 +5,7 @@
 '
 ' Petals tumble in 3D: the sprite's width follows cos(flip), floored so a petal seen edge-on
 ' never vanishes, and they fall slower face-on, when they catch the air. BrightScript can only
-' scale bitmaps, so the in-plane spin picks from 8 pre-rotated sprites. Each petal has a depth d
+' scale bitmaps, so the in-plane spin picks from 8 pre-rotated sprites (in 3 color variants). Each petal has a depth d
 ' (0 at the far bank .. 1 at the bottom of the screen) that sets its size, speed and where it
 ' comes down. Over water it lands, sends out a ripple, floats with the current and fades within
 ' a few seconds, so petals never pile up; elsewhere it just fades. Occasional gusts sweep across
@@ -22,10 +22,15 @@ function BlossomsInit(cfg as object) as object
         ripples: []
         gust: { active: false, wait: 8 + Rnd(0) * 12 }
     }
-    for i = 0 to 7
-        s.sprites.Push(CreateObject("roBitmap", "pkg:/images/petal_" + i.ToStr() + ".png"))
+    for v = 0 to 2
+        rot = []
+        for i = 0 to 7
+            rot.Push(CreateObject("roBitmap", "pkg:/images/petal_" + v.ToStr() + "_" + i.ToStr() + ".png"))
+        end for
+        s.sprites.Push(rot)
     end for
-    s.spriteSize = s.sprites[0].GetWidth()
+    s.spriteSize = s.sprites[0][0].GetWidth()
+    s.tints = PetalTints()
 
     ' Water spans are traced in unscaled plate coordinates; map them like stars and windows.
     sc = p.bg.GetWidth() / 1920.0
@@ -56,6 +61,7 @@ function NewPetal(s as object, y as float) as object
         flip: Rnd(0) * 6.283, flipRate: 1.2 + Rnd(0) * 1.8
         spin: Rnd(0) * 180, spinRate: (Rnd(0) - 0.5) * 70
         sw: Rnd(0) * 6.283, swRate: 0.5 + Rnd(0) * 0.7, swAmp: 15 + Rnd(0) * 25
+        variant: Rnd(3) - 1
         state: 0, age: 0, life: 0
         alpha: 255 * pc.alpha * (0.7 + 0.3 * d)
     }
@@ -154,9 +160,11 @@ sub UpdatePetal(s as object, f as object, t as float, dt as float)
     if f.x > 1980 then f.x = f.x - 2040
 end sub
 
-'' Petals are drawn tinted cooler and darker than their sprite, so they sit in the dusk light.
-function PetalTint() as integer
-    return &hC8BCCC00
+'' Petals are tinted cooler and darker than their sprite so they sit in the dusk light, and
+' brighter the more face-on they are, as a turning petal catches the light. The levels are
+' precomputed color literals (building them at runtime overflows BrightScript's 32-bit ints).
+function PetalTints() as object
+    return [&h7C747E00, &h8C838E00, &h9C929F00, &hACA1AF00, &hBAAEBD00, &hC8BCCC00]
 end function
 
 sub DrawPetal(s as object, screen as object, f as object, ox as float)
@@ -168,7 +176,8 @@ sub DrawPetal(s as object, screen as object, f as object, ox as float)
     idx = Int(FMod(f.spin, 180) / 22.5)
     sx = f.size * c : sy = f.size
     half = s.spriteSize / 2
-    screen.DrawScaledObject(f.x + f.swAmp * Sin(f.sw) + ox - half * sx, f.y - half * sy, sx, sy, s.sprites[idx], PetalTint() + Int(a))
+    tint = s.tints[Int((c - 0.18) / 0.82 * 5.99)]
+    screen.DrawScaledObject(f.x + f.swAmp * Sin(f.sw) + ox - half * sx, f.y - half * sy, sx, sy, s.sprites[f.variant][idx], tint + Int(a))
 end sub
 
 sub DrawFloating(s as object, screen as object, f as object, ox as float, oy as float)
@@ -178,7 +187,7 @@ sub DrawFloating(s as object, screen as object, f as object, ox as float, oy as 
     sx = f.size : sy = f.size * 0.45
     half = s.spriteSize / 2
     idx = Int(FMod(f.spin, 180) / 22.5)
-    screen.DrawScaledObject(f.x + ox - half * sx, f.land + oy - half * sy, sx, sy, s.sprites[idx], PetalTint() + Int(a))
+    screen.DrawScaledObject(f.x + ox - half * sx, f.land + oy - half * sy, sx, sy, s.sprites[f.variant][idx], s.tints[3] + Int(a))
 end sub
 
 sub UpdateRipples(s as object, screen as object, dt as float, ox as float, oy as float)
