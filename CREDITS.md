@@ -4,7 +4,8 @@ Every image that ships in `roku/dusk/images/` must have a row here.
 
 ## Images
 
-All plates are AI-generated locally; no third-party photographs are used.
+All plates are AI-generated locally; no third-party photographs are used. All images are dedicated
+to the public domain under CC0 1.0 (`LICENSE-ART`).
 Sprites (fireflies, stars, snow, aurora, petals, ripples, glows) are drawn procedurally by `tools/build_scene.py`.
 
 | Shipped asset | Source | Generator / license | Prompt | Retrieved |

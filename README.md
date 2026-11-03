@@ -10,6 +10,16 @@ A Roku screensaver with three calm scenes: photoreal plates with procedural anim
 
 The settings screen (Settings › Theme › Screensavers › Dusk) picks one scene or cycles through all of them.
 
+## The art and its license
+
+Every image in Dusk was made for this project. No photographs or third-party artwork are used.
+
+- **Plates** (the three backgrounds) were generated locally on a Mac with [Z-Image-Turbo](https://huggingface.co/Tongyi-MAI/Z-Image-Turbo) (Apache 2.0), run through [mflux](https://github.com/filipstrand/mflux). The exact prompts are in `gen/prompts/`, and the kept generations, with their seeds in the file names, are in `gen/drafts/`.
+- Each plate was then **color graded** (PhotoCraft), **split into depth layers** using a depth map from [Depth Anything V2 Small](https://huggingface.co/depth-anything/Depth-Anything-V2-Small-hf) (Apache 2.0), and scaled and quantized for the Roku by the scripts in `tools/`.
+- **Everything that moves** (fireflies, stars, aurora, snow, petals, ripples, window and lantern glows) is drawn procedurally by `tools/build_scene.py` and animated in BrightScript.
+
+**License:** all images in this repository, generated and procedural, are dedicated to the public domain under [CC0 1.0](LICENSE-ART). You may use them for anything without asking or giving credit. The code is licensed under [Apache 2.0](LICENSE). `CREDITS.md` lists every shipped image with its source, prompt and seed.
+
 ## Layout
 
 - `roku/dusk/`: the screensaver package (BrightScript, `roScreen`)
@@ -23,6 +33,9 @@ The settings screen (Settings › Theme › Screensavers › Dusk) picks one sce
 - `tools/`: the asset pipeline and device helpers
 - `roku/bench*/`: throwaway performance benchmarks used to find the device's limits
 - `CREDITS.md`: every shipped image and how it was made
+- `STORE.md`: Roku Channel Store listing text and checklist
+- `PRIVACY.md`: privacy policy (linked from the store listing)
+- `LICENSE` (Apache 2.0, code), `LICENSE-ART` (CC0 1.0, images)
 
 ## Asset pipeline
 
